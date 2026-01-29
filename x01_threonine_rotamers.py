@@ -31,6 +31,7 @@ def compute_rotamers(trj_path, top_path, whichprotein, savefilename):
     upperpath = "/media/X01Raid01/Data_Backup/home/jborowsky/aac1-ucp1-aa-and-threonine/long-aac1-ucp1-processing/thr_rotamers/"
     _savefilename = upperpath + savefilename
 
+
     #-------------------------------- select residues -------------------------------
 
     #whichprotein = "aac1"

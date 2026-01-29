@@ -18,7 +18,7 @@ def compute_observable_x01(calc_obs):
 
                 for seg in range(1,20):
                     segstr = str(seg).zfill(2)
-                    print("a")
+                    
                     trjpath = f"{inputpath}/{server}/{protein}/run0{run}/seg{segstr}.xtc"
                     print(trjpath)
                     if not os.path.exists(trjpath): break
