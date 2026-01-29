@@ -15,7 +15,7 @@ from MDAnalysis.analysis import dihedrals
 import sys
 import os
 
-sys.path.insert(1, f'{os.getcwd()}/../utility')
+#sys.path.insert(1, f'{os.getcwd()}/../utility')
 import compute_observable_on_trjs_x01_v3
 
 
@@ -48,13 +48,15 @@ def compute_rotamers(trj_path, top_path, whichprotein, savefilename):
 
     if whichprotein == "aac1":
         threonines_byloc = threonines_aac1
+        offset = 1
     elif whichprotein == "ucp1":
         threonines_byloc = threonines_ucp1
+        offset = 9
     else:
         print(f"invalid protein {whichprotein}")
         #return 0
 
-    threonine_inds_byloc = [[ii-1 for ii in i] for i in threonines_byloc]
+    threonine_inds_byloc = [[ii-offset for ii in i] for i in threonines_byloc]
 
     #determine array dimensions necessary to encode residues in all location types in a single rectilinear numpy array
     # this array is padded with values of 400 (outside the angle range returned by the dihedral calculation) 
