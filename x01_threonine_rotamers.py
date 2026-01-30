@@ -42,13 +42,15 @@ def compute_rotamers(trj_path, top_path, whichprotein, savefilename):
         "on a loop (all of these are in water)"
     ]
 
-    whichresidue = "ser"
+    whichresidue = "val"
 
     #note that these are the residue numbers, which are one larger than the corresponding indices
     threonines_ucp1 = [[193, 189, 121, 30, 122, 35],[226, 103, 97, 237, 259, 165, 166, 67, 62],[176, 177, 170, 156, 133, 60, 264],[11, 48, 108, 154]]
     threonines_aac1 = [[23,125,161,196,218,232],[83,138,220],[253],[154,251]]
     serines_ucp1 = [[18, 86, 89, 217, 279],[87, 183, 229],[114, 230, 273],[49, 50, 75, 111, 144, 242, 249, 296, 298]]
     serines_aac1 = [[],[21, 118, 126, 166, 227],[6,68,179,212,275],[1,41,45,241]]
+    valines_ucp1 = [[282, 286, 216, 192, 184, 125, 127, 98, 28, 136, 235, 257, 64, 65],[38, 42, 138, 135, 202, 234],[211, 14, 271, 57, 232, 250],[51]]
+    valines_aac1 = [[16, 31, 37, 57, 77, 180, 193, 219, 222, 226, 233, 277, 286],[25, 58, 130, 288],[178, 211, 254],[102, 144, 207, 297]]
 
     if whichresidue == "thr":
         if whichprotein == "aac1":
@@ -72,6 +74,17 @@ def compute_rotamers(trj_path, top_path, whichprotein, savefilename):
             print(f"invalid protein {whichprotein}")
             return 0
     
+    elif whichresidue == "val":
+        if whichprotein == "aac1":
+            residues_byloc = valines_aac1
+            offset = 1
+        elif whichprotein == "ucp1":
+            residues_byloc = valines_ucp1
+            offset = 9
+        else:
+            print(f"invalid protein {whichprotein}")
+            return 0
+
     else:
         print(f"invalid protein {whichresidue}")
         return 0   
