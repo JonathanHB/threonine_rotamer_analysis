@@ -42,28 +42,78 @@ def compute_rotamers(trj_path, top_path, whichprotein, savefilename):
         "on a loop (all of these are in water)"
     ]
 
+    whichresidue = "ser"
+
     #note that these are the residue numbers, which are one larger than the corresponding indices
     threonines_ucp1 = [[193, 189, 121, 30, 122, 35],[226, 103, 97, 237, 259, 165, 166, 67, 62],[176, 177, 170, 156, 133, 60, 264],[11, 48, 108, 154]]
     threonines_aac1 = [[23,125,161,196,218,232],[83,138,220],[253],[154,251]]
+    serines_ucp1 = [[18, 86, 89, 217, 279],[87, 183, 229],[114, 230, 273],[49, 50, 75, 111, 144, 242, 249, 296, 298]]
+    serines_aac1 = [[],[21, 118, 126, 166, 227],[6,68,179,212,275],[1,41,45,241]]
 
-    if whichprotein == "aac1":
-        threonines_byloc = threonines_aac1
-        offset = 1
-    elif whichprotein == "ucp1":
-        threonines_byloc = threonines_ucp1
-        offset = 9
+    if whichresidue == "thr":
+        if whichprotein == "aac1":
+            residues_byloc = threonines_aac1
+            offset = 1
+        elif whichprotein == "ucp1":
+            residues_byloc = threonines_ucp1
+            offset = 9
+        else:
+            print(f"invalid protein {whichprotein}")
+            return 0
+        
+    elif whichresidue == "ser":
+        if whichprotein == "aac1":
+            residues_byloc = serines_aac1
+            offset = 1
+        elif whichprotein == "ucp1":
+            residues_byloc = serines_ucp1
+            offset = 9
+        else:
+            print(f"invalid protein {whichprotein}")
+            return 0
+    
     else:
-        print(f"invalid protein {whichprotein}")
-        #return 0
+        print(f"invalid protein {whichresidue}")
+        return 0   
 
-    threonine_inds_byloc = [[ii-offset for ii in i] for i in threonines_byloc]
+    if residues_byloc == []:
+        return 0
+
+    residue_inds_byloc = [[ii-offset for ii in i] for i in residues_byloc]
 
     #determine array dimensions necessary to encode residues in all location types in a single rectilinear numpy array
     # this array is padded with values of 400 (outside the angle range returned by the dihedral calculation) 
     # where there are not enough residues in a particular location type
     n_frames = len(u.trajectory)
-    n_loctypes = len(threonines_byloc)
-    n_resis_per_loctype = max(len(lst) for lst in threonines_byloc)
+    n_loctypes = len(residues_byloc)
+    n_resis_per_loctype = max(len(lst) for lst in residues_byloc)
+
+
+    #-------------------------------- verify residue list consistency -------------------------------
+
+    flat_resis = np.array([si for s in residue_inds_byloc for si in s])
+    flat_resis.flatten()
+
+    #check for duplicated residue indices in the list
+    duplicates = (len(flat_resis) != len(np.unique(flat_resis)))
+    if duplicates:
+        print("error: residue list includes residues multiple times")
+        return 0
+
+    #check for residues indices in the list corresponding to the wrong residue in the protein structure
+    all_correct_resn = np.all([res.resname == whichresidue.upper() for res in protein_trj.residues[flat_resis]])
+    if not all_correct_resn:
+        print(f"error: residue list contains residues other than {whichresidue}")
+        return 0
+
+    #check for residues present in the protein structure but not the list
+    total_resis = len([res.resname for res in protein_trj.residues if res.resname.lower() == whichresidue])
+    if total_resis > len(np.unique(flat_resis)):
+        print(f"error: not all {whichresidue} residues are listed")
+        return 0
+    elif total_resis < len(np.unique(flat_resis)):
+        print(f"error: more residues are listed than exist in the protein")
+        return 0
 
 
     #-------------------------------- calculate dihedrals -------------------------------
@@ -73,12 +123,12 @@ def compute_rotamers(trj_path, top_path, whichprotein, savefilename):
     angles_all = np.ones((n_loctypes, n_resis_per_loctype, n_frames))*400
 
     for loc_ind in range(n_loctypes):
-        thr_inds = threonine_inds_byloc[loc_ind]
+        resi_inds = residue_inds_byloc[loc_ind]
         #see https://userguide.mdanalysis.org/1.1.1/examples/analysis/structure/dihedrals.html
-        chi1_atoms = [res.chi1_selection() for res in protein_trj.residues[thr_inds]]
+        chi1_atoms = [res.chi1_selection() for res in protein_trj.residues[resi_inds]]
         chi1_dihedrals = dihedrals.Dihedral(chi1_atoms).run()
         dihedral_angles = chi1_dihedrals.results.angles
-        angles_all[loc_ind, 0:len(thr_inds)] = dihedral_angles.transpose()
+        angles_all[loc_ind, 0:len(resi_inds)] = dihedral_angles.transpose()
 
 
     #-------------------------------- discretize trajectory -------------------------------
@@ -94,7 +144,7 @@ def compute_rotamers(trj_path, top_path, whichprotein, savefilename):
     rotamer_trj = np.digitize(angles_all, rotamer_bounds, right=True) #this splits the rotamer centered on +-180 degrees into two bins
     rotamer_trj = np.where(rotamer_trj == n_rotamers, 0, rotamer_trj) #merge the bins for the rotamer at 180 degrees back together
 
-    np.save(_savefilename+"-thr-rotamer-trj-discrete" + ".npy", rotamer_trj.astype(np.uint8))
+    np.save(_savefilename+f"-{whichresidue}-rotamer-trj-discrete" + ".npy", rotamer_trj.astype(np.uint8))
 
 
     #-------------------------------- count rotamter occurrences -------------------------------
@@ -105,7 +155,7 @@ def compute_rotamers(trj_path, top_path, whichprotein, savefilename):
         rotamers_onehot = np.where(rotamer_trj == rotamer_ind, 1, 0)
         rotamer_counts[:,:,rotamer_ind] = np.sum(rotamers_onehot, axis = 2)
 
-    np.save(_savefilename+"-thr-rotamer-counts" + ".npy", rotamer_counts)
+    np.save(_savefilename+f"-{whichresidue}-rotamer-counts" + ".npy", rotamer_counts)
 
 
 compute_observable_on_trjs_x01_v3.compute_observable_x01(compute_rotamers)

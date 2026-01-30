@@ -4,7 +4,7 @@ toppath_upper = "/media/X01Raid01/Data_Backup/home/jborowsky/aac1-ucp1-aa-and-th
 inputpath     = "/media/X01Raid01/Data_Backup/home/jborowsky/aac1-ucp1-aa-and-threonine/long-aac1-ucp1-processing/centered_trajectories_links"
 
 servers = ["wynton", "degrabo"]
-proteins = ["ucp1"]
+proteins = ["aac1", "ucp1"]
 
 def compute_observable_x01(calc_obs):
 
