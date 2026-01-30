@@ -77,6 +77,7 @@ def compute_rotamers(trj_path, top_path, whichprotein, savefilename):
         return 0   
 
     if residues_byloc == []:
+        print("no residues")
         return 0
 
     residue_inds_byloc = [[ii-offset for ii in i] for i in residues_byloc]
