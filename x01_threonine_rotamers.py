@@ -76,10 +76,8 @@ def compute_rotamers(trj_path, top_path, whichprotein, savefilename):
         print(f"invalid protein {whichresidue}")
         return 0   
 
-    if residues_byloc == []:
-        print("no residues")
-        return 0
-
+    
+    #residue indices matching mdanalysis object (0-indexed rather than using the PDB numbering)
     residue_inds_byloc = [[ii-offset for ii in i] for i in residues_byloc]
 
     #determine array dimensions necessary to encode residues in all location types in a single rectilinear numpy array
@@ -125,6 +123,8 @@ def compute_rotamers(trj_path, top_path, whichprotein, savefilename):
 
     for loc_ind in range(n_loctypes):
         resi_inds = residue_inds_byloc[loc_ind]
+        if resi_inds == []:
+            continue
         #see https://userguide.mdanalysis.org/1.1.1/examples/analysis/structure/dihedrals.html
         chi1_atoms = [res.chi1_selection() for res in protein_trj.residues[resi_inds]]
         chi1_dihedrals = dihedrals.Dihedral(chi1_atoms).run()
