@@ -24,8 +24,12 @@ plot_rot_solv_sec_fixed_solvation.ipynb
     calculate delta-G values for rotamer flipping of each residue (aggregating data from all simulations) and the hydrogen bonding probability of each residue
     Residues are then grouped into buried, interfacial, and water exposed by hydrogen bond frequency.
     The difference between the average flipping delta-G of the buried and water exposed categories is the delta-delta-G
+rotamer_solvation_plots.ipynb
+    plot the probability of +-60 vs 180 degree rotamers for buried vs aqueous residues in the middles of TM helices (i.e. the same categories used for the analysis in plot_rot_solv_sec_fixed_solvation.ipynb)
+
 
 threonine_rotamer_solvation_ss.ipynb
+    [currently only processes test numpy files containing a small portion of the data; lacks a loading function]
     calculate probabilities of each combination of (discrete) helicity, h-bond, and rotamer to look for correlations. Also has cells to plot observables over time. The result was that (helical) residues differ drastically in their joint h-bond-rotamer probability distributions.
 plot_rot_solv_sec_transitions.ipynb
     calculate transitions between all combinations of helicity, h-bond, and rotameric states to determine whether our simulations are long enough to sample the relevant transitions enough times to obtain converged free energy estimates just by looking at the relative frequencies of simulation frames in different states. Simulations are indeed long enough (this is why error bars are calculated by averaging across residues, which differ much more than the simulation replicates). 
@@ -38,7 +42,7 @@ draft_analysis/threonine_hbond_calculation.ipynb
 draft_analysis/x01_threonine_solvation.py
     proximity-based solvation calculation with mdtraj; NOT based on threonine_hbond_calculation.ipynb
 plot_rotamers.ipynb
-    make bar graph of probabilities of being near different number of  at sites with different (manually assigned) solvation states 
+    make bar graph of probabilities of being near different numbers of waters at sites with different (manually assigned) solvation states 
 
 draft_analysis/threonine_rotamer_calculation.ipynb
     rotamer calculation with mdanalysis
