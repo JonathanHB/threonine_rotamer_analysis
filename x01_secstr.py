@@ -30,7 +30,9 @@ def compute_rhs(trj_path, top_path, whichprotein, savefilename):
 
     n_frames = len(u.trajectory)
     n_residues = len(u.select_atoms(f"resname {whichresidue.upper()}").residues)
-
+    
+    query_resis = u.select_atoms(f"resname {whichresidue.upper()}").residues
+    thr_indices = query_resis.resids - u.residues[0].resid
 
     #######################################################################################
     #                                 SECONDARY STRUCTURE
@@ -42,7 +44,6 @@ def compute_rhs(trj_path, top_path, whichprotein, savefilename):
 
     #-------------------------------- find threonines on helices -------------------------------
     #0-indexed to match secondary structure
-    thr_indices = query_resis.resids-u.residues[0].resid
 
     secstr_thr = secstr_num[thr_indices]
 
