@@ -24,8 +24,10 @@ plot_rot_solv_sec_fixed_solvation.ipynb
     calculate delta-G values for rotamer flipping of each residue (aggregating data from all simulations) and the hydrogen bonding probability of each residue
     Residues are then grouped into buried, interfacial, and water exposed by hydrogen bond frequency.
     The difference between the average flipping delta-G of the buried and water exposed categories is the delta-delta-G
+    --> This notebook makes the scatter and box plots
 rotamer_solvation_plots.ipynb
     plot the probability of +-60 vs 180 degree rotamers for buried vs aqueous residues in the middles of TM helices (i.e. the same categories used for the analysis in plot_rot_solv_sec_fixed_solvation.ipynb)
+    --> This notebook makes the bar plots
 
 
 threonine_rotamer_solvation_ss.ipynb

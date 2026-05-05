@@ -108,7 +108,7 @@ def compute_rhs(trj_path, top_path, whichprotein, savefilename):
     #-------------------------------- calculate secondary structure for each frame -------------------------------
 
     secstr = DSSP(u).run().results.dssp
-    secstr_num = np.where(secstr=='H', 1, 0)# + np.where(secstr=='E', 2, 0) #there are vanishingly few sheet assignments, which are all standalone misclassified loops
+    secstr_num = np.where(secstr=='H', 1, 0) # + np.where(secstr=='E', 2, 0) #there are vanishingly few sheet assignments, which are all standalone misclassified loops
 
 
     #-------------------------------- find threonines on helices long enough to support backbone H bonding -------------------------------
@@ -129,6 +129,7 @@ def compute_rhs(trj_path, top_path, whichprotein, savefilename):
 
 
     np.save(_savefilename+f"-{whichresidue}-secstr" + ".npy", helix_assignments.astype(np.uint8))
+    np.save(_savefilename+f"-{whichresidue}-secstr_num" + ".npy", secstr_num.astype(np.uint8))
 
 
 
