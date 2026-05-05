@@ -19,12 +19,12 @@ import compute_observable_on_trjs_x01_v3
 
 def compute_rhs(trj_path, top_path, whichprotein, savefilename):
 
-    upperpath = "/media/X01Raid01/Data_Backup/home/jborowsky/aac1-ucp1-aa-and-threonine/long-aac1-ucp1-processing/thr_rotamers_v2/"
+    upperpath = "/media/X01Raid01/Data_Backup/home/jborowsky/aac1-ucp1-aa-and-threonine/long-aac1-ucp1-processing/resi_data/"
     _savefilename = upperpath + savefilename
 
     #-------------------------------- load trajectory -------------------------------
 
-    whichresidue = "thr"
+    whichresidue = "ser"
 
     u = mda.Universe(top_path, trj_path, topology_format='ITP')
 
