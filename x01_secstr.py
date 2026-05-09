@@ -45,7 +45,7 @@ def compute_rhs(trj_path, top_path, whichprotein, savefilename):
     #-------------------------------- find threonines on helices -------------------------------
     #0-indexed to match secondary structure
 
-    secstr_thr = secstr_num[thr_indices]
+    secstr_thr = secstr_num[:, thr_indices]
 
     # helix_counts = np.zeros((n_residues, n_frames))
     # helix_assignments = np.zeros((n_residues, n_frames)).astype(int)
