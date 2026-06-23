@@ -1,0 +1,171 @@
+#Jonathan Borowsky
+#Grabe lab
+#6/23/26
+
+#rotamer, hydrogen bonds, and secondary structure calculation for collaboration with Rutter lab
+#############################################################################
+
+#-------------------------------- imports -------------------------------
+
+import numpy as np
+import matplotlib.pyplot as plt
+import MDAnalysis as mda
+from MDAnalysis.analysis import dihedrals
+from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import HydrogenBondAnalysis as HBA
+from MDAnalysis.analysis.dssp import DSSP
+
+import compute_observable_on_trjs_x01_v3
+
+import numpy as np
+from MDAnalysis.lib.distances import capped_distance
+
+
+def count_water_contacts(
+    universe,
+    distance_threshold: float,
+    protein_oxygen_query: str,
+    water_oxygen_query: str,
+) -> np.ndarray:
+    """
+    Count the number of water oxygens within a distance threshold of each
+    protein sidechain oxygen, across every frame of a trajectory.
+
+    Parameters
+    ----------
+    universe : MDAnalysis.Universe
+        Universe object containing the topology and trajectory.
+    distance_threshold : float
+        Distance cutoff in Ångströms. Water oxygens closer than this value
+        to a protein oxygen are counted as contacts.
+    protein_oxygen_query : str
+        MDAnalysis selection string that resolves to the protein sidechain
+        oxygen atoms of interest (e.g. ``"protein and name OD1 OD2 OE1 OE2
+        OG OG1 OH"``.
+    water_oxygen_query : str
+        MDAnalysis selection string that resolves to the water oxygen atoms
+        (e.g. ``"resname WAT SOL TIP3 and name O OW"``).
+
+    Returns
+    -------
+    counts : np.ndarray, shape (n_frames, n_protein_oxygens), dtype int
+        ``counts[f, i]`` is the number of water oxygens within
+        *distance_threshold* Å of protein oxygen *i* in frame *f*.
+        The column order matches the atom order returned by
+        ``universe.select_atoms(protein_oxygen_query)``.
+
+    Notes
+    -----
+    * Selections are evaluated once before the trajectory loop, so the
+      atom groups must remain valid (same indices) for every frame.
+      If your system has a variable number of waters per frame you may
+      need to re-select inside the loop.
+    * ``capped_distance`` uses a cell-list / KD-tree algorithm, making it
+      significantly faster than a brute-force pairwise distance matrix for
+      large systems.
+    * Periodic boundary conditions are respected automatically via the
+      ``box`` argument (taken from ``universe.dimensions`` each frame).
+
+    Example
+    -------
+    >>> import MDAnalysis as mda
+    >>> u = mda.Universe("topology.pdb", "trajectory.xtc")
+    >>> counts = count_water_contacts(
+    ...     u,
+    ...     distance_threshold=3.5,
+    ...     protein_oxygen_query="protein and name OD1 OD2 OE1 OE2 OG OG1 OH",
+    ...     water_oxygen_query="resname SOL and name OW",
+    ... )
+    >>> counts.shape   # (n_frames, n_sidechain_oxygens)
+    """
+    # --- Build atom groups once (topology does not change) -----------------
+    protein_oxygens = universe.select_atoms(protein_oxygen_query)
+    water_oxygens = universe.select_atoms(water_oxygen_query)
+
+    n_frames = universe.trajectory.n_frames
+    n_protein_ox = len(protein_oxygens)
+
+    if n_protein_ox == 0:
+        raise ValueError(
+            f"protein_oxygen_query '{protein_oxygen_query}' matched no atoms."
+        )
+    if len(water_oxygens) == 0:
+        raise ValueError(
+            f"water_oxygen_query '{water_oxygen_query}' matched no atoms."
+        )
+
+    counts = np.zeros((n_frames, n_protein_ox), dtype=int)
+
+    for frame_idx, _ts in enumerate(universe.trajectory):
+        prot_pos = protein_oxygens.positions   # shape (n_protein_ox, 3)
+        wat_pos = water_oxygens.positions      # shape (n_water_ox, 3)
+        box = universe.dimensions              # PBC box, or None
+
+        # capped_distance returns pairs (i, j) where i indexes prot_pos and
+        # j indexes wat_pos, for all pairs within distance_threshold.
+        pairs, _ = capped_distance(
+            prot_pos,
+            wat_pos,
+            max_cutoff=distance_threshold,
+            box=box,
+            return_distances=True,
+        )
+
+        if pairs.size > 0:
+            # pairs[:, 0] contains protein oxygen indices; count occurrences.
+            protein_indices = pairs[:, 0]
+            np.add.at(counts[frame_idx], protein_indices, 1)
+
+    return counts
+
+
+def compute_rhs(trj_path, top_path, whichprotein, savefilename, upperpath = "/media/X01Raid01/Data_Backup/home/jborowsky/aac1-ucp1-aa-and-threonine/long-aac1-ucp1-processing/resi_data/"):
+
+    _savefilename = upperpath + savefilename
+
+    #-------------------------------- load trajectory -------------------------------
+
+    whichresidue = "thr"
+
+    u = mda.Universe(top_path, trj_path, topology_format='ITP')
+
+    # n_frames = len(u.trajectory)
+    # n_residues = len(u.select_atoms(f"resname {whichresidue.upper()}").residues)
+    
+    #query_resis = u.select_atoms(f"resname {whichresidue.upper()}").residues
+    #thr_indices = query_resis.resids - u.residues[0].resid
+    #print(thr_indices)
+    
+    #-------------------------------- find nearby waters -------------------------------
+
+    distance_cutoff=3.3
+
+    acceptor_names = {"thr":"OG1", "ser":"OG"}
+    protein_oxygen_query = f"resname {whichresidue.upper()} and name {acceptor_names[whichresidue]}"
+    water_oxygen_query = "resname TIP3 and name OH2"
+
+    #for r in u.select_atoms(protein_oxygen_query).residues:
+    #    print(r)
+
+    wc = count_water_contacts(
+        u,
+        distance_threshold=distance_cutoff,
+        protein_oxygen_query=protein_oxygen_query,
+        water_oxygen_query=water_oxygen_query,
+    )
+
+    np.save(_savefilename+f"-{whichresidue}-water-num" + ".npy", wc.astype(np.uint8))
+
+
+localtest=False
+
+if localtest:
+    whichprotein = "aac1"
+    savefilename = f"test-{whichprotein}"
+    upperpath = ""
+
+    top_path = f"/home/jonathan/Documents/grabelab/rutter-lab-collaboration/test_trj/{whichprotein}/input/topol.top"
+    trj_path = f"/home/jonathan/Documents/grabelab/rutter-lab-collaboration/test_trj/{whichprotein}/traj_comp.part0001-centered.xtc"
+    compute_rhs(trj_path, top_path, whichprotein, savefilename, upperpath)
+
+else:
+    compute_observable_on_trjs_x01_v3.compute_observable_x01(compute_rhs)
