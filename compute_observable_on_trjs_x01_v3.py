@@ -11,7 +11,7 @@ def compute_observable_x01(calc_obs):
     #loop over servers, proteins, and parallel runs
     for server in servers:
         for protein in proteins:
-            toppath = f"{toppath_upper}/{server}/{protein}/input/seg_0035.gro"
+            toppath = f"{toppath_upper}/{server}/{protein}/input/topol.top" #seg_0035.gro"
             for run in range(1,5):
                 #not all servers have the same number of parallel simulations
                 if run > 2 and server == "degrabo": continue
