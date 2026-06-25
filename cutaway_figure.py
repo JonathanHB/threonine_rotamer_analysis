@@ -20,6 +20,7 @@ cmd.set_color("c_protein", [57/256, 79/256, 141/256])
 cmd.color("c_protein", "poly")
 
 cmd.set_color("c_headgroup", [233/256, 182/256, 78/256])
+
 #POPC
 cmd.color("c_headgroup", "resn POPC and \
           name N+C11+C12+C13+C14+C15+\
