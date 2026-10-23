@@ -127,7 +127,7 @@ def compute_rhs(trj_path, top_path, whichprotein, savefilename, upperpath = "/me
 
     #-------------------------------- load trajectory -------------------------------
 
-    whichresidue = "thr"
+    whichresidue = "ser"
 
     u = mda.Universe(top_path, trj_path, topology_format='ITP')
 
